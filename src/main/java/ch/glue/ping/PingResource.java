@@ -1,4 +1,4 @@
-package ch.glue.ping.boundary;
+package ch.glue.ping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -33,12 +33,13 @@ public class PingResource {
 	}
 
 	@GET
-	@Path("{uri}")
+	@Path("{host}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response ping(@PathParam("uri") String uri) {
+	public Response ping(@PathParam("host") String host) {
 		String msg = String.format("Incoming ping from %s --> %s", httpServletRequest.getRemoteAddr(),
 				httpServletRequest.getLocalAddr());
 		System.out.println(msg);
+		String uri = "http://" + host + "/znueni/manage/ping";
 		System.out.println("Calling " + uri);
 		StopWatch sw = new StopWatch();
 		sw.start();
@@ -48,8 +49,8 @@ public class PingResource {
 	}
 
 	public String doCall(String uri) {
-		WebTarget target = ClientBuilder.newClient().target("http://" + uri);
-		return target.path("/znueni/manage/ping").request().get(String.class);
+		WebTarget target = ClientBuilder.newClient().target(uri);
+		return target.request().get(String.class);
 	}
 
 }

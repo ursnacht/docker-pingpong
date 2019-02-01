@@ -1,4 +1,4 @@
-package ch.glue.ping.boundary;
+package ch.glue.ping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
