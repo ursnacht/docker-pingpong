@@ -11,22 +11,20 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang.time.StopWatch;
-
 /**
  *
  * @author airhacks.com
  */
-@Path("ping")
-public class PingResource {
+@Path("call")
+public class CallResource {
 
 	@Context
 	private HttpServletRequest httpServletRequest;
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response ping() {
-		String msg = String.format("Incoming ping from %s --> %s", httpServletRequest.getRemoteAddr(),
+	public Response call() {
+		String msg = String.format("Incoming call from %s --> %s", httpServletRequest.getRemoteAddr(),
 				httpServletRequest.getLocalAddr());
 		System.out.println(msg);
 		return Response.status(200).entity(msg).build();
@@ -35,21 +33,18 @@ public class PingResource {
 	@GET
 	@Path("{uri}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response ping(@PathParam("uri") String uri) {
-		String msg = String.format("Incoming ping from %s --> %s", httpServletRequest.getRemoteAddr(),
+	public Response call(@PathParam("uri") String uri) {
+		String msg = String.format("Incoming call from %s --> %s", httpServletRequest.getRemoteAddr(),
 				httpServletRequest.getLocalAddr());
 		System.out.println(msg);
 		System.out.println("Calling " + uri);
-		StopWatch sw = new StopWatch();
-		sw.start();
 		String result = doCall(uri);
-		sw.stop();
-		return Response.status(200).entity(msg + "\nCalling: " + uri + "\nResult: " + result + "\n" + sw).build();
+		return Response.status(200).entity(msg + "\nCalling: " + uri + "\nResult: " + result).build();
 	}
 
 	public String doCall(String uri) {
-		WebTarget target = ClientBuilder.newClient().target("http://" + uri);
-		return target.path("/znueni/manage/ping").request().get(String.class);
+		WebTarget target = ClientBuilder.newClient().target(uri);
+		return target.request().get(String.class);
 	}
 
 }

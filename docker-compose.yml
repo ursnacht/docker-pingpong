@@ -1,0 +1,38 @@
+version: '3.6'
+
+services:
+
+  sc1:
+    build: .
+    image: docker-se.glue.ch/znueni:1.0.0
+    container_name: c1
+    #network_mode: bridge
+    #networks:
+    #  default:
+    #    aliases: 
+    #      - cont1.ch
+    stop_signal: SIGKILL
+    ports:
+      - "8081:8080"
+      - "4841:4848"
+
+  sc2:
+    image: docker-se.glue.ch/znueni:1.0.0
+    container_name: c2
+    #network_mode: bridge
+    #networks:
+    #  default:
+    #    aliases: 
+    #      - cont2.ch
+    stop_signal: SIGKILL
+    ports:
+      - "8082:8080"
+      - "4842:4848"
+    depends_on:
+      - sc1
+
+networks:
+  default:
+    external:
+      # name: bridge
+      name: znueni-network
