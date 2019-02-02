@@ -1,17 +1,12 @@
 package ch.glue.ping;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.apache.commons.lang.time.StopWatch;
 
 /**
  *
@@ -20,37 +15,21 @@ import org.apache.commons.lang.time.StopWatch;
 @Path("ping")
 public class PingResource {
 
-	@Context
-	private HttpServletRequest httpServletRequest;
+	@Inject
+	RelayService relayService;
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response ping() {
-		String msg = String.format("Incoming ping from %s --> %s", httpServletRequest.getRemoteAddr(),
-				httpServletRequest.getLocalAddr());
-		System.out.println(msg);
+		String msg = relayService.buildMessage();
 		return Response.status(200).entity(msg).build();
 	}
 
 	@GET
-	@Path("{host}")
+	@Path("{hostAndPort}")
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response ping(@PathParam("host") String host) {
-		String msg = String.format("Incoming ping from %s --> %s", httpServletRequest.getRemoteAddr(),
-				httpServletRequest.getLocalAddr());
-		System.out.println(msg);
-		String uri = "http://" + host + "/znueni/manage/ping";
-		System.out.println("Calling " + uri);
-		StopWatch sw = new StopWatch();
-		sw.start();
-		String result = doCall(uri);
-		sw.stop();
-		return Response.status(200).entity(msg + "\nCalling: " + uri + "\nResult: " + result + "\n" + sw).build();
+	public Response ping(@PathParam("hostAndPort") String hostAndPort) {
+		String uri = "http://" + hostAndPort + "/znueni/manage/ping";
+		return relayService.relay(uri);
 	}
-
-	public String doCall(String uri) {
-		WebTarget target = ClientBuilder.newClient().target(uri);
-		return target.request().get(String.class);
-	}
-
 }

@@ -2,10 +2,10 @@ version: '3.6'
 
 services:
 
-  sc10:
+  sc20:
     build: .
     image: docker-se.glue.ch/znueni:1.0.0
-    container_name: c10
+    container_name: c20
     #network_mode: bridge
     #networks:
     #  default:
@@ -13,11 +13,11 @@ services:
     #      - cont1.ch
     stop_signal: SIGKILL
     ports:
-      - "8010:8080"
+      - "8020:8080"
 
-  sc11:
+  sc21:
     image: docker-se.glue.ch/znueni:1.0.0
-    container_name: c11
+    container_name: c21
     #network_mode: bridge
     #networks:
     #  default:
@@ -25,12 +25,12 @@ services:
     #      - cont2.ch
     stop_signal: SIGKILL
     ports:
-      - "8011:8080"
+      - "8021:8080"
     depends_on:
-      - sc10
+      - sc20
 
 networks:
   default:
     external:
       # name: bridge
-      name: network-1
+      name: network-2
