@@ -1,2 +1,2 @@
 FROM airhacks/payara5
-COPY ./target/znueni.war ${DEPLOYMENT_DIR}
+COPY ./target/pingpong.war ${DEPLOYMENT_DIR}

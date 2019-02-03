@@ -2,59 +2,288 @@
 
 Projekt zum Tüfteln von Docker, Docker Compose, etc.
 
+# Verwendung des default Netzwerks "bridge"
+
+    sc10:
+      network_mode: bridge
+      networks:
+        default:
+          aliases: 
+            - c10.ch
+            
     networks:
       default:
-        aliases: 
-          - container1.ch
+        external:
+          name: bridge
 
---> network-scoped alias is supported only for containers in user defined networks
+--> network-scoped alias is supported only for containers in **user defined** networks
 
 ## Fazit:
 --> eigenes (explizites) Netzwerk verwenden, wenn man mit alias arbeiten möchte.
 
-Man kann aber auch ganz einfach die aliase weglassen und stattdessen den andern Container mit dem Containernamen aufrufen. 
-Dies bedingt aber ein eigenes Netzwerk,
+Man kann aber auch ganz einfach die Aliase weglassen und stattdessen den andern Container mit dem Containernamen aufrufen. 
 
-# Netzwerke
-* 172.1.1.0 Container c10 - 8010, c11 - 8011
-* 172.2.2.0 Container c20 - 8020, c21 - 8021
+# Explizites, externes Netzwerk
 
-# Aufrufe im eigenen Netzwerk
-1. c10: <http://localhost:8010/znueni/manage/ping> --> localhost + gemappter Port
-2. c10: <http://172.1.1.0:8080/znueni/manage/ping> --> IP-Adresse + interner Port
-3. c10: <http://172.1.1.254:8010/znueni/manage/ping> --> Gateway + gemappter Port
+network.sh
+
+    #!/bin/sh
+    docker network create \
+	  --driver=bridge \
+	  --subnet=172.1.1.0/16 \
+	  --ip-range=172.1.1.0/24 \
+	  --gateway=172.1.1.254 \
+	  pingpong-1
+	  
+docker-compose.yml
+
+    sc10:
+      networks:
+        default:
+          aliases: 
+            - c10.ch
+
+    networks:
+      default:
+        external:
+          name: pingpong-1
+
+* Gateway: 172.1.1.254 resp. 172.2.2.254
+* c10: 172.1.1.0:8080 (8010), c11: 172.1.1.1:8080 (8011)
+* c20: 172.2.2.0:8080 (8020), c21: 172.2.2.1:8080 (8021)
+
+## Aufrufe im eigenen Netzwerk
+1. c10: <http://localhost:8010/ping> --> localhost + gemappter Port
+2. c10: <http://172.1.1.0:8080/ping> --> IP-Adresse + interner Port
+3. c10: <http://172.1.1.254:8010/ping> --> Gateway + gemappter Port
 
 
-1. c11: <http://localhost:8011/znueni/manage/ping>
-2. c11: <http://172.1.1.1:8080/znueni/manage/ping>
-3. c11: <http://172.1.1.254:8011/znueni/manage/ping>
+1. c11: <http://localhost:8011/ping>
+2. c11: <http://172.1.1.1:8080/ping>
+3. c11: <http://172.1.1.254:8011/ping>
 
 
-1. c20: <http://localhost:8020/znueni/manage/ping>
-2. c20: <http://172.2.2.0:8080/znueni/manage/ping>
-3. c20: <http://172.2.2.254:8020/znueni/manage/ping>
+1. c20: <http://localhost:8020/ping>
+2. c20: <http://172.2.2.0:8080/ping>
+3. c20: <http://172.2.2.254:8020/ping>
 
 
-1. c10 --> c11: <http://localhost:8010/znueni/manage/ping/172.1.1.1%3A8080>
-2. c10 --> c11: <http://172.1.1.0:8080/znueni/manage/ping/172.1.1.1%3A8080>
-2. c10 --> c11: <http://172.1.1.254:8010/znueni/manage/ping/172.1.1.1%3A8080>
+1. c10 --> c11: <http://localhost:8010/ping/172.1.1.1%3A8080>
+2. c10 --> c11: <http://172.1.1.0:8080/ping/172.1.1.1%3A8080>
+2. c10 --> c11: <http://172.1.1.254:8010/ping/172.1.1.1%3A8080>
 
-### Aufruf mit Containername: c11
-1. c10 --> c11: <http://localhost:8010/znueni/manage/ping/c11%3A8080>
-2. c10 --> c11: <http://172.1.1.0:8080/znueni/manage/ping/c11%3A8080>
-3. c10 --> c11: <http://172.1.1.254:8010/znueni/manage/ping/c11%3A8080>
+## Aufruf mit Containername: c11
+1. c10 --> c11: <http://localhost:8010/ping/c11%3A8080>
+2. c10 --> c11: <http://172.1.1.0:8080/ping/c11%3A8080>
+3. c10 --> c11: <http://172.1.1.254:8010/ping/c11%3A8080>
 
-### Aufruf mit Servicename: sc11
-1. c10 --> c11: <http://localhost:8010/znueni/manage/ping/sc11%3A8080>
-2. c10 --> c11: <http://172.1.1.0:8080/znueni/manage/ping/sc11%3A8080>
-3. c10 --> c11: <http://172.1.1.254:8010/znueni/manage/ping/sc11%3A8080>
+## Aufruf mit Servicename: sc11
+1. c10 --> c11: <http://localhost:8010/ping/sc11%3A8080>
+2. c10 --> c11: <http://172.1.1.0:8080/ping/sc11%3A8080>
+3. c10 --> c11: <http://172.1.1.254:8010/ping/sc11%3A8080>
 
-# Calls
-1. c10 --> c11: <http://localhost:8010/znueni/manage/call/http%3A%2F%2Fc11%3A8080%2Fznueni%2Fmanage%2Fping>
-2. c10 --> c11 --> c10: <http://localhost:8010/znueni/manage/call/http%3A%2F%2Fc11%3A8080%2Fznueni%2Fmanage%2Fping%2Fc10%3A8080>
+## Aufruf mit Alias: c11.ch
+1. c10 --> c11: <http://localhost:8010/ping/c11.ch%3A8080>
+2. c10 --> c11: <http://172.1.1.0:8080/ping/c11.ch%3A8080>
+3. c10 --> c11: <http://172.1.1.254:8010/ping/c11.ch%3A8080>
 
-# Zwischen den Netzwerken funktioniert's nur mit dem Gateway
-1. c20: <http://172.2.2.0:8080/znueni/manage/ping>
-2. c10 --> c20: <http://localhost:8010/znueni/manage/ping/172.2.2.0%3A8080> (direkt --> funktioniert nicht)
-3. c10 --> c20: <http://localhost:8010/znueni/manage/ping/172.2.2.254%3A8020> (mit Gateway --> funktioniert)
+## Calls
+1. c10 --> c11: <http://localhost:8010/call/http%3A%2F%2Fc11%3A8080%2Fping>
+2. c10 --> c11 --> c10: <http://localhost:8010/call/http%3A%2F%2Fc11%3A8080%2Fping%2Fc10%3A8080>
 
+## Zwischen den Netzwerken
+
+funktioniert nur mit Gateway oder via Host
+
+### mit Gateway
+1. c20: <http://172.2.2.0:8080/ping>
+2. c10 --> c20: <http://localhost:8010/ping/172.2.2.0%3A8080> (direkt --> funktioniert nicht)
+3. c10 --> c20: <http://localhost:8010/ping/172.2.2.254%3A8020> (mit Gateway --> funktioniert)
+
+### via Host
+1. c10 --> c20: <http://localhost:8010/ping/172.17.0.1%3A8020> (via Host --> funktioniert)
+
+# Netzwerke ohne explizite Gateway
+
+network.sh
+
+    #!/bin/sh
+    docker network create \
+	  --driver=bridge \
+	  --subnet=172.1.1.0/16 \
+	  --ip-range=172.1.1.0/24 \
+	  pingpong-1
+
+docker-compose.yml
+
+    sc10:
+      networks:
+        default:
+          aliases: 
+            - c10.ch
+
+    networks:
+      default:
+        external:
+          name: pingpong-1
+
+* --> implizier Gateway 172.1.1.0 resp. 172.2.2.0
+* c10: 172.1.1.1:8080 (8010), c11: 172.1.1.2:8080 (8011)
+* c20: 172.2.2.1:8080 (8020), c21: 172.2.2.2:8080 (8021)
+
+## Aufrufe im eigenen Netzwerk
+1. c10: <http://localhost:8010/ping> --> localhost + gemappter Port
+2. c10: <http://172.1.1.1:8080/ping> --> IP-Adresse + interner Port
+3. c10: <http://172.1.1.0:8010/ping> --> Gateway + gemappter Port
+4. c10: <http://172.17.0.1:8010/ping> --> Host + gemappter Port
+
+
+1. c11: <http://localhost:8011/ping>
+2. c11: <http://172.1.1.2:8080/ping>
+3. c11: <http://172.1.1.0:8011/ping>
+
+
+1. c20: <http://localhost:8020/ping>
+2. c20: <http://172.2.2.1:8080/ping>
+3. c20: <http://172.2.2.0:8020/ping>
+
+
+1. c10 --> c11: <http://localhost:8010/ping/172.1.1.2%3A8080>
+2. c10 --> c11: <http://172.1.1.1:8080/ping/172.1.1.2%3A8080>
+2. c10 --> c11: <http://172.1.1.0:8010/ping/172.1.1.2%3A8080>
+
+## Aufruf mit Containername: c11
+1. c10 --> c11: <http://localhost:8010/ping/c11%3A8080>
+2. c10 --> c11: <http://172.1.1.1:8080/ping/c11%3A8080>
+3. c10 --> c11: <http://172.1.1.0:8010/ping/c11%3A8080>
+
+## Aufruf mit Servicename: sc11
+1. c10 --> c11: <http://localhost:8010/ping/sc11%3A8080>
+2. c10 --> c11: <http://172.1.1.1:8080/ping/sc11%3A8080>
+3. c10 --> c11: <http://172.1.1.0:8010/ping/sc11%3A8080>
+
+## Aufruf mit Alias: c11.ch
+1. c10 --> c11: <http://localhost:8010/ping/c11.ch%3A8080>
+2. c10 --> c11: <http://172.1.1.1:8080/ping/c11.ch%3A8080>
+3. c10 --> c11: <http://172.1.1.0:8010/ping/c11.ch%3A8080>
+
+## Calls
+1. c10 --> c11: <http://localhost:8010/call/http%3A%2F%2Fc11%3A8080%2Fping>
+2. c10 --> c11 --> c10: <http://localhost:8010/call/http%3A%2F%2Fc11%3A8080%2Fping%2Fc10%3A8080>
+
+## Zwischen den Netzwerken
+
+funktioniert nur mit Gateway oder via Host
+
+### mit Gateway
+1. c20: <http://172.2.2.1:8080/ping>
+2. c10 --> c20: <http://localhost:8010/ping/172.2.2.1%3A8080> (direkt --> funktioniert nicht)
+3. c10 --> c20: <http://localhost:8010/ping/172.2.2.0%3A8020> (mit Gateway --> funktioniert)
+
+### via Host
+1. c10 --> c20: <http://localhost:8010/ping/172.17.0.1%3A8020> (via Host --> funktioniert)
+
+# Netzwerke ohne explizite Gateway und ohne IP-Range
+
+network.sh
+    
+    #!/bin/sh
+    docker network create \
+	  --driver=bridge \
+	  --subnet=172.1.1.0/16 \
+	  pingpong-1
+
+docker-compose.yml
+
+    sc10:
+      networks:
+        default:
+          aliases: 
+            - c10.ch
+
+    networks:
+      default:
+        external:
+          name: pingpong-1
+
+oder **nur** in **docker-compose.yml**	  
+	  
+    sc10:
+      networks:
+        pingpong-1:
+          aliases: 
+            - c10.ch
+ 
+    networks:
+      pingpong-1:
+        name: pingpong-1
+        driver: bridge
+        ipam:
+          driver: default
+          config:
+            - subnet: 172.1.1.0/16
+	  
+
+* --> implizier Gateway 172.1.0.1 resp. 172.2.0.1
+* c10: 172.1.0.2:8080 (8010), c11: 172.1.0.3:8080 (8011)
+* c20: 172.2.0.2:8080 (8020), c21: 172.2.0.3:8080 (8021)
+
+## Aufrufe im eigenen Netzwerk
+1. c10: <http://localhost:8010/ping> --> localhost + gemappter Port
+2. c10: <http://172.1.0.2:8080/ping> --> IP-Adresse + interner Port
+3. c10: <http://172.1.0.1:8010/ping> --> Gateway + gemappter Port
+4. c10: <http://172.17.0.1:8010/ping> --> Host + gemappter Port
+
+
+1. c11: <http://localhost:8011/ping>
+2. c11: <http://172.1.0.3:8080/ping>
+3. c11: <http://172.1.0.1:8011/ping>
+4. c11: <http://172.17.0.1:8011/ping>
+
+
+1. c20: <http://localhost:8020/ping>
+2. c20: <http://172.2.0.2:8080/ping>
+3. c20: <http://172.2.0.1:8020/ping>
+4. c20: <http://172.17.0.1:8020/ping>
+
+
+1. c10 --> c11: <http://localhost:8010/ping/172.1.0.3%3A8080>
+2. c10 --> c11: <http://172.1.0.2:8080/ping/172.1.0.3%3A8080>
+3. c10 --> c11: <http://172.1.0.1:8010/ping/172.1.0.3%3A8080>
+4. c10 --> c11: <http://172.17.0.1:8010/ping/172.1.0.3%3A8080>
+
+## Aufruf mit Containername: c11
+1. c10 --> c11: <http://localhost:8010/ping/c11%3A8080>
+2. c10 --> c11: <http://172.1.0.2:8080/ping/c11%3A8080>
+3. c10 --> c11: <http://172.1.0.1:8010/ping/c11%3A8080>
+3. c10 --> c11: <http://172.17.0.1:8010/ping/c11%3A8080>
+
+## Aufruf mit Servicename: sc11
+1. c10 --> c11: <http://localhost:8010/ping/sc11%3A8080>
+2. c10 --> c11: <http://172.1.0.2:8080/ping/sc11%3A8080>
+3. c10 --> c11: <http://172.1.0.1:8010/ping/sc11%3A8080>
+4. c10 --> c11: <http://172.17.0.1:8010/ping/sc11%3A8080>
+
+## Aufruf mit Alias: c11.ch
+
+1. c10 --> c11: <http://localhost:8010/ping/c11.ch%3A8080>
+2. c10 --> c11: <http://172.1.0.2:8080/ping/c11.ch%3A8080>
+3. c10 --> c11: <http://172.1.0.1:8010/ping/c11.ch%3A8080>
+4. c10 --> c11: <http://172.17.0.1:8010/ping/c11.ch%3A8080>
+
+## Calls
+1. c10 --> c11: <http://localhost:8010/call/http%3A%2F%2Fc11.ch%3A8080%2Fping>
+2. c10 --> c11 --> c10: <http://localhost:8010/call/http%3A%2F%2Fc11.ch%3A8080%2Fping%2Fc10.ch%3A8080>
+
+## Zwischen den Netzwerken
+
+funktioniert nur mit Gateway oder via Host
+
+### mit Gateway
+2. c20: <http://172.2.0.2:8080/ping>
+1. c20: <http://172.2.0.1:8020/ping>
+3. c10 --> c20: <http://localhost:8010/ping/172.2.0.2%3A8080> (direkt --> funktioniert nicht)
+4. c10 --> c20: <http://localhost:8010/ping/172.2.0.1%3A8020> (mit Gateway --> funktioniert)
+
+### via Host
+1. c10 --> c20: <http://localhost:8010/ping/172.17.0.1%3A8020> (via Host --> funktioniert)

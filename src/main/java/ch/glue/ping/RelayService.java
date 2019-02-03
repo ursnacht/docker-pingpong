@@ -26,17 +26,16 @@ public class RelayService {
 		return Response.status(200).entity(msg + "\nCalling: " + address + "\nResult: " + result + "\n" + sw).build();
 	}
 
-	public String doCall(String address) {
-		WebTarget target = ClientBuilder.newClient().target(address);
-		return target.request().get(String.class);
-	}
-	
-	public String buildMessage()
-	{
-		String msg = String.format("Incoming request from %s --> %s", httpServletRequest.getRemoteAddr(),
+	public String buildMessage() {
+		String msg = String.format("Incoming request from %s --> %s", //
+				httpServletRequest.getRemoteAddr(), //
 				httpServletRequest.getLocalAddr());
 		System.out.println(msg);
 		return msg;
 	}
 
+	private String doCall(String address) {
+		WebTarget target = ClientBuilder.newClient().target(address);
+		return target.request().get(String.class);
+	}
 }

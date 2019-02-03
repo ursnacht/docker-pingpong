@@ -29,7 +29,7 @@ public class PingResource {
 	@Path("{hostAndPort}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response ping(@PathParam("hostAndPort") String hostAndPort) {
-		String uri = "http://" + hostAndPort + "/znueni/manage/ping";
+		String uri = "http://" + hostAndPort + "/ping";
 		return relayService.relay(uri);
 	}
 }

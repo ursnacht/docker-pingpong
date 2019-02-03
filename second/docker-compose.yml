@@ -7,10 +7,11 @@ services:
     image: docker-se.glue.ch/znueni:1.0.0
     container_name: c20
     #network_mode: bridge
-    #networks:
+    networks:
     #  default:
-    #    aliases: 
-    #      - cont1.ch
+      pingpong-2:
+        aliases: 
+          - c20.ch
     stop_signal: SIGKILL
     ports:
       - "8020:8080"
@@ -19,10 +20,11 @@ services:
     image: docker-se.glue.ch/znueni:1.0.0
     container_name: c21
     #network_mode: bridge
-    #networks:
+    networks:
     #  default:
-    #    aliases: 
-    #      - cont2.ch
+      pingpong-2:
+        aliases: 
+          - c21.ch
     stop_signal: SIGKILL
     ports:
       - "8021:8080"
@@ -30,7 +32,14 @@ services:
       - sc20
 
 networks:
-  default:
-    external:
-      # name: bridge
-      name: network-2
+  pingpong-2:
+    name: pingpong-2
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.2.2.0/16
+#  default:
+#    external:
+#      name: bridge
+#      name: pingpong-2
