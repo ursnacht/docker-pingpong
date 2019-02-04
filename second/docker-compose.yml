@@ -1,14 +1,12 @@
-version: '3.6'
+version: '3.5'
 
 services:
 
   sc20:
     build: .
-    image: docker-se.glue.ch/znueni:1.0.0
+    image: docker-se.glue.ch/pingpong:1.0.0
     container_name: c20
-    #network_mode: bridge
     networks:
-    #  default:
       pingpong-2:
         aliases: 
           - c20.ch
@@ -17,11 +15,9 @@ services:
       - "8020:8080"
 
   sc21:
-    image: docker-se.glue.ch/znueni:1.0.0
+    image: docker-se.glue.ch/pingpong:1.0.0
     container_name: c21
-    #network_mode: bridge
     networks:
-    #  default:
       pingpong-2:
         aliases: 
           - c21.ch
@@ -39,7 +35,3 @@ networks:
       driver: default
       config:
         - subnet: 172.2.2.0/16
-#  default:
-#    external:
-#      name: bridge
-#      name: pingpong-2

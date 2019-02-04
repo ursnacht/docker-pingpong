@@ -23,11 +23,12 @@ public class RelayService {
 		sw.start();
 		String result = doCall(address);
 		sw.stop();
-		return Response.status(200).entity(msg + "\nCalling: " + address + "\nResult: " + result + "\n" + sw).build();
+		return Response.status(200).entity(msg + "\nCalling: " + address + "\nResult: " + result + "\n" + sw + "\n")
+				.build();
 	}
 
 	public String buildMessage() {
-		String msg = String.format("Incoming request from %s --> %s", //
+		String msg = String.format("Incoming request from %s --> %s\n", //
 				httpServletRequest.getRemoteAddr(), //
 				httpServletRequest.getLocalAddr());
 		System.out.println(msg);
