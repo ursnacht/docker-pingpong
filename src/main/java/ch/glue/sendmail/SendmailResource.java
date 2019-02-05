@@ -24,7 +24,7 @@ import ch.glue.ping.RelayService;
 public class SendmailResource {
 
 	private String smtpHost = "172.17.0.1";
-	private String smtpPort = "80";
+	private String smtpPort = "25";
 
 	@Inject
 	RelayService relayService;

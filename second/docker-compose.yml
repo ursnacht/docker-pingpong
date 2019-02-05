@@ -2,30 +2,30 @@ version: '3.5'
 
 services:
 
-  sc20:
+  sc22:
     build: .
     image: docker-se.glue.ch/pingpong:1.0.0
-    container_name: c20
+    container_name: c22
     networks:
       pingpong-2:
         aliases: 
-          - c20.ch
+          - c22.ch
     stop_signal: SIGKILL
     ports:
-      - "8020:8080"
+      - "8022:8080"
 
-  sc21:
+  sc23:
     image: docker-se.glue.ch/pingpong:1.0.0
-    container_name: c21
+    container_name: c23
     networks:
       pingpong-2:
         aliases: 
-          - c21.ch
+          - c23.ch
     stop_signal: SIGKILL
     ports:
-      - "8021:8080"
+      - "8023:8080"
     depends_on:
-      - sc20
+      - sc22
 
 networks:
   pingpong-2:
@@ -34,4 +34,4 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.2.2.0/16
+        - subnet: 172.28.20.0/24
